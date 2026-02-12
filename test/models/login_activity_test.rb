@@ -2,7 +2,7 @@ require "test_helper"
 
 class LoginActivityTest < ActiveSupport::TestCase
   def setup
-    @user = users(:family_admin)
+    @user = users(:family_member)
   end
 
   test "should create login activity" do
