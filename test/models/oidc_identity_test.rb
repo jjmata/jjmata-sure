@@ -82,7 +82,7 @@ class OidcIdentityTest < ActiveSupport::TestCase
 
   test "creates from omniauth hash and attaches profile image when provided" do
     image_response = fake_image_response(content_type: "image/png", body: "png-bytes")
-    Net::HTTP.stubs(:get_response).returns(image_response)
+    @oidc_identity.stubs(:fetch_profile_image).returns(image_response)
 
     auth = OmniAuth::AuthHash.new({
       provider: "google_oauth2",
@@ -92,13 +92,12 @@ class OidcIdentityTest < ActiveSupport::TestCase
         name: "Test User",
         first_name: "Test",
         last_name: "User",
-        image: "https://example.com/avatar.png"
+        image: "https://lh3.googleusercontent.com/avatar.png"
       }
     })
 
-    identity = OidcIdentity.create_from_omniauth(auth, @user)
+    @oidc_identity.sync_profile_image_from_auth(auth)
 
-    assert identity.persisted?
     assert @user.profile_image.attached?
     assert_equal "image/png", @user.profile_image.blob.content_type
   end
@@ -110,9 +109,6 @@ class OidcIdentityTest < ActiveSupport::TestCase
       content_type: "image/jpeg"
     )
 
-    replacement_response = fake_image_response(content_type: "image/png", body: "replacement-bytes")
-    Net::HTTP.stubs(:get_response).returns(replacement_response)
-
     auth = OmniAuth::AuthHash.new({
       provider: @oidc_identity.provider,
       uid: @oidc_identity.uid,
@@ -121,9 +117,11 @@ class OidcIdentityTest < ActiveSupport::TestCase
         name: "Updated User",
         first_name: "Updated",
         last_name: "User",
-        image: "https://example.com/new-avatar.png"
+        image: "https://lh3.googleusercontent.com/new-avatar.png"
       }
     })
+
+    @oidc_identity.expects(:fetch_profile_image).never
 
     original_blob_id = @user.profile_image.blob.id
 
@@ -132,6 +130,22 @@ class OidcIdentityTest < ActiveSupport::TestCase
     @user.reload
     assert @user.profile_image.attached?
     assert_equal original_blob_id, @user.profile_image.blob.id
+  end
+
+  test "does not download avatar for non-google host" do
+    auth = OmniAuth::AuthHash.new({
+      provider: "google_oauth2",
+      uid: "google-123456",
+      info: {
+        image: "https://example.com/avatar.png"
+      }
+    })
+
+    @oidc_identity.expects(:fetch_profile_image).never
+
+    @oidc_identity.sync_profile_image_from_auth(auth)
+
+    assert_not @user.profile_image.attached?
   end
 
   private
