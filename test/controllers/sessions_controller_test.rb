@@ -205,8 +205,8 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Verify the session has the pending auth data by checking page content
-    assert_equal "new-uid-99999", session[:pending_oidc_auth][:uid]
-    assert_equal user_without_oidc.email, session[:pending_oidc_auth][:email]
+    assert_equal "new-uid-99999", session[:pending_oidc_auth]["uid"]
+    assert_equal user_without_oidc.email, session[:pending_oidc_auth]["email"]
   end
 
   test "stores avatar url in pending auth for account linking" do
@@ -221,7 +221,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get "/auth/openid_connect/callback"
 
     assert_redirected_to link_oidc_account_path
-    assert_equal "https://example.com/avatar.png", session[:pending_oidc_auth][:image]
+    assert_equal "https://example.com/avatar.png", session[:pending_oidc_auth]["image"]
   end
 
   test "handles missing auth data gracefully" do
