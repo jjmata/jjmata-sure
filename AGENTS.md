@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## About Sure
+
+Sure is a community-maintained fork of the Maybe Finance personal finance app (now archived). This is a Rails-based personal finance and wealth management application that can be self-hosted with Docker or run locally for development. The app helps users track accounts, transactions, investments, and financial goals across multiple currencies.
+
 ## Project Structure & Module Organization
 - Code: `app/` (Rails MVC, services, jobs, mailers, components), JS in `app/javascript/`, styles/assets in `app/assets/` (Tailwind, images, fonts).
 - Config: `config/`, environment examples in `.env.local.example` and `.env.test.example`.
@@ -10,10 +14,27 @@
 ## Build, Test, and Development Commands
 - Setup: `cp .env.local.example .env.local && bin/setup` — install deps, set DB, prepare app.
 - Run app: `bin/dev` — starts Rails server and asset/watchers via `Procfile.dev`.
-- Test suite: `bin/rails test` — run all Minitest tests; add `TEST=test/models/user_test.rb` to target a file.
-- Lint Ruby: `bin/rubocop` — style checks; add `-A` to auto-correct safe cops.
-- Lint/format JS/CSS: `npm run lint` and `npm run format` — uses Biome.
+- Test suite: `bin/rails test` — run all Minitest tests (primary test framework); add `TEST=test/models/user_test.rb` to target a file.
+- RSpec: `bundle exec rspec` — run RSpec tests (used only for API documentation generation via rswag).
+- Lint Ruby: `bin/rubocop` — style checks (uses rubocop-rails-omakase); add `-A` to auto-correct safe cops.
+- Lint ERB: `bundle exec erb_lint ./app/**/*.erb -a` — ERB linting with auto-correct.
+- Lint/format JS/CSS: `npm run lint` and `npm run format` — uses Biome for JavaScript.
 - Security scan: `bin/brakeman` — static analysis for common Rails issues.
+
+### Requirements
+- Ruby 3.4.7 (see `.ruby-version`)
+- PostgreSQL >9.3 (latest stable recommended)
+- Redis >5.4 (latest stable recommended)
+- Node.js (for JavaScript tooling)
+
+### Key Technologies
+- **Backend**: Rails 7.2.2, PostgreSQL, Redis, Sidekiq
+- **Frontend**: Hotwire (Turbo + Stimulus), ViewComponents, Tailwind CSS v4.x
+- **Testing**: Minitest (primary), RSpec (API docs only), Mocha (mocking), VCR (HTTP recording)
+- **Linting**: RuboCop (rubocop-rails-omakase), ERB Lint, Biome (JavaScript)
+- **Integrations**: Plaid (bank syncing), Stripe (payments), OpenAI (AI features)
+- **Icons**: Lucide (via `icon` helper)
+- **Component Development**: Lookbook (viewable at `/design-system` in dev mode)
 
 ## Coding Style & Naming Conventions
 - Ruby: 2-space indent, `snake_case` for methods/vars, `CamelCase` for classes/modules. Follow Rails conventions for folders and file names.
@@ -22,7 +43,7 @@
 - Commit small, cohesive changes; keep diffs focused.
 
 ## Testing Guidelines
-- Framework: Minitest (Rails). Name files `*_test.rb` and mirror `app/` structure.
+- Framework: Minitest (primary test framework for Rails). RSpec is used ONLY for API documentation generation (rswag) in the `spec/` directory. Name files `*_test.rb` and mirror `app/` structure.
 - Run: `bin/rails test` locally and ensure green before pushing.
 - Fixtures/VCR: Use `test/fixtures` and existing VCR cassettes for HTTP. Prefer unit tests plus focused integration tests.
 

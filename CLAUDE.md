@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## About Sure
+
+Sure is a community-maintained fork of the Maybe Finance personal finance app (now archived). This is a Rails-based personal finance and wealth management application that can be self-hosted with Docker or run locally for development. The app helps users track accounts, transactions, investments, and financial goals across multiple currencies.
+
 ## Common Development Commands
 
 ### Development Server
@@ -10,17 +14,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bin/rails console` - Open Rails console
 
 ### Testing
-- `bin/rails test` - Run all tests
+- `bin/rails test` - Run all Minitest tests (primary test framework)
 - `bin/rails test:db` - Run tests with database reset
 - `bin/rails test:system` - Run system tests only (use sparingly - they take longer)
 - `bin/rails test test/models/account_test.rb` - Run specific test file
 - `bin/rails test test/models/account_test.rb:42` - Run specific test at line
+- `bundle exec rspec` - Run RSpec tests (used only for API documentation generation via rswag)
 
 ### Linting & Formatting
-- `bin/rubocop` - Run Ruby linter
-- `npm run lint` - Check JavaScript/TypeScript code
-- `npm run lint:fix` - Fix JavaScript/TypeScript issues
-- `npm run format` - Format JavaScript/TypeScript code
+- `bin/rubocop` - Run Ruby linter (uses rubocop-rails-omakase)
+- `npm run lint` - Lint JavaScript with Biome
+- `npm run lint:fix` - Fix JavaScript linting issues with Biome
+- `npm run format` - Format JavaScript with Biome
+- `npm run format:check` - Check JavaScript formatting without modifying
+- `bundle exec erb_lint ./app/**/*.erb` - Lint ERB templates
+- `bundle exec erb_lint ./app/**/*.erb -a` - Auto-correct ERB linting issues
 - `bin/brakeman` - Run security analysis
 
 ### Database
@@ -31,6 +39,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Setup
 - `bin/setup` - Initial project setup (installs dependencies, prepares database)
+
+### Requirements
+- Ruby 3.4.7 (see `.ruby-version`)
+- PostgreSQL >9.3 (latest stable recommended)
+- Redis >5.4 (latest stable recommended)
+- Node.js (for JavaScript tooling)
+
+### Key Technologies
+- **Backend**: Rails 7.2.2, PostgreSQL, Redis, Sidekiq
+- **Frontend**: Hotwire (Turbo + Stimulus), ViewComponents, Tailwind CSS v4.x
+- **Testing**: Minitest (primary), RSpec (API docs only), Mocha (mocking), VCR (HTTP recording)
+- **Linting**: RuboCop (rubocop-rails-omakase), ERB Lint, Biome (JavaScript)
+- **Integrations**: Plaid (bank syncing), Stripe (payments), OpenAI (AI features)
+- **Icons**: Lucide (via `icon` helper)
+- **Component Development**: Lookbook (viewable at `/design-system` in dev mode)
 
 ## Pre-Pull Request CI Workflow
 
@@ -43,6 +66,7 @@ ALWAYS run these commands before opening a pull request:
 2. **Linting** (Required):
    - `bin/rubocop -f github -a` - Ruby linting with auto-correct
    - `bundle exec erb_lint ./app/**/*.erb -a` - ERB linting with auto-correct
+   - `npm run lint:fix` and `npm run format` - JavaScript linting and formatting with Biome
 
 3. **Security** (Required):
    - `bin/brakeman --no-pager` - Security analysis
@@ -157,7 +181,8 @@ Sidekiq handles asynchronous tasks:
 - Strong parameters and CSRF protection throughout
 
 ### Testing Philosophy
-- Comprehensive test coverage using Rails' built-in Minitest
+- Comprehensive test coverage using Rails' built-in Minitest (primary test framework)
+- RSpec is used ONLY for API documentation generation (rswag) in the `spec/` directory
 - Fixtures for test data (avoid FactoryBot)
 - Keep fixtures minimal (2-3 per model for base cases)
 - VCR for external API testing
@@ -291,7 +316,8 @@ en:
 ## Testing Philosophy
 
 ### General Testing Rules
-- **ALWAYS use Minitest + fixtures** (NEVER RSpec or factories)
+- **ALWAYS use Minitest + fixtures** as the primary test framework (NEVER FactoryBot)
+- **RSpec is ONLY for API documentation** (rswag specs in `spec/` directory) - do not use for general testing
 - Keep fixtures minimal (2-3 per model for base cases)
 - Create edge cases on-the-fly within test context
 - Use Rails helpers for large fixture creation needs
