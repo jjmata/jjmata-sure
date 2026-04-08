@@ -1,0 +1,18 @@
+# Login activities fixtures
+family_admin_login_us:
+  user: family_admin
+  ip_address: "192.168.1.1"
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+  country: "US"
+  city: "New York"
+  unusual: false
+  created_at: <%= 2.days.ago %>
+
+family_admin_login_ca:
+  user: family_admin
+  ip_address: "203.0.113.1"
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+  country: "CA"
+  city: "Toronto"
+  unusual: true
+  created_at: <%= 1.day.ago %>

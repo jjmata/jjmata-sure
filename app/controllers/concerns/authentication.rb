@@ -40,6 +40,14 @@ module Authentication
     def create_session_for(user)
       session = user.sessions.create!
       cookies.signed.permanent[:session_token] = { value: session.id, httponly: true }
+
+      # Record login activity for unusual login detection
+      LoginActivity.record_login!(
+        user: user,
+        ip_address: Current.ip_address,
+        user_agent: Current.user_agent
+      )
+
       session
     end
 
