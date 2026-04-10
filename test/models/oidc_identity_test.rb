@@ -79,4 +79,86 @@ class OidcIdentityTest < ActiveSupport::TestCase
     assert_equal @user, identity.user
     assert_not_nil identity.last_authenticated_at
   end
+
+  test "creates from omniauth hash and attaches profile image when provided" do
+    image_response = fake_image_response(content_type: "image/png", body: "png-bytes")
+    @oidc_identity.stubs(:fetch_profile_image).returns(image_response)
+
+    auth = OmniAuth::AuthHash.new({
+      provider: "google_oauth2",
+      uid: "google-123456",
+      info: {
+        email: "test@example.com",
+        name: "Test User",
+        first_name: "Test",
+        last_name: "User",
+        image: "https://lh3.googleusercontent.com/avatar.png"
+      }
+    })
+
+    @oidc_identity.sync_profile_image_from_auth(auth)
+
+    assert @user.profile_image.attached?
+    assert_equal "image/png", @user.profile_image.blob.content_type
+  end
+
+  test "sync_user_attributes does not replace an existing profile image" do
+    @user.profile_image.attach(
+      io: StringIO.new("existing-avatar"),
+      filename: "existing.jpg",
+      content_type: "image/jpeg"
+    )
+
+    auth = OmniAuth::AuthHash.new({
+      provider: @oidc_identity.provider,
+      uid: @oidc_identity.uid,
+      info: {
+        email: @user.email,
+        name: "Updated User",
+        first_name: "Updated",
+        last_name: "User",
+        image: "https://lh3.googleusercontent.com/new-avatar.png"
+      }
+    })
+
+    @oidc_identity.expects(:fetch_profile_image).never
+
+    original_blob_id = @user.profile_image.blob.id
+
+    @oidc_identity.sync_user_attributes!(auth)
+
+    @user.reload
+    assert @user.profile_image.attached?
+    assert_equal original_blob_id, @user.profile_image.blob.id
+  end
+
+  test "does not download avatar for non-google host" do
+    auth = OmniAuth::AuthHash.new({
+      provider: "google_oauth2",
+      uid: "google-123456",
+      info: {
+        image: "https://example.com/avatar.png"
+      }
+    })
+
+    @oidc_identity.expects(:fetch_profile_image).never
+
+    @oidc_identity.sync_profile_image_from_auth(auth)
+
+    assert_not @user.profile_image.attached?
+  end
+
+  private
+
+    def fake_image_response(content_type:, body:)
+      response = Object.new
+      response.define_singleton_method(:is_a?) do |klass|
+        klass == Net::HTTPSuccess
+      end
+      response.define_singleton_method(:[]) do |header_name|
+        header_name == "Content-Type" ? content_type : nil
+      end
+      response.define_singleton_method(:body) { body }
+      response
+    end
 end

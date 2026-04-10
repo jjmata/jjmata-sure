@@ -203,7 +203,8 @@ class SessionsController < ApplicationController
         email: auth.info&.email,
         name: auth.info&.name,
         first_name: auth.info&.first_name,
-        last_name: auth.info&.last_name
+        last_name: auth.info&.last_name,
+        image: auth.info&.image || auth.extra&.raw_info&.picture || auth.extra&.raw_info&.[]("picture")
       }
       redirect_to link_oidc_account_path
     end

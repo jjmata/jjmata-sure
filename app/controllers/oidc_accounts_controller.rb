@@ -179,7 +179,7 @@ class OidcAccountsController < ApplicationController
       OpenStruct.new(
         provider: pending_auth["provider"],
         uid: pending_auth["uid"],
-        info: OpenStruct.new(pending_auth.slice("email", "name", "first_name", "last_name"))
+        info: OpenStruct.new(pending_auth.slice("email", "name", "first_name", "last_name", "image"))
       )
     end
 end

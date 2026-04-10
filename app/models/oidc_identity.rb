@@ -1,4 +1,9 @@
+require "net/http"
+require "stringio"
+
 class OidcIdentity < ApplicationRecord
+  GOOGLE_AVATAR_HOST_SUFFIX = "googleusercontent.com".freeze
+
   belongs_to :user
 
   validates :provider, presence: true
@@ -30,6 +35,8 @@ class OidcIdentity < ApplicationRecord
       first_name: auth.info&.first_name.presence || user.first_name,
       last_name: auth.info&.last_name.presence || user.last_name
     )
+
+    sync_profile_image_from_auth(auth)
 
     # Apply role mapping based on group membership
     apply_role_mapping!(groups)
@@ -78,7 +85,7 @@ class OidcIdentity < ApplicationRecord
     # Extract issuer from OIDC auth response if available
     issuer = auth.extra&.raw_info&.iss || auth.extra&.raw_info&.[]("iss")
 
-    create!(
+    identity = create!(
       user: user,
       provider: auth.provider,
       uid: auth.uid,
@@ -91,6 +98,9 @@ class OidcIdentity < ApplicationRecord
       },
       last_authenticated_at: Time.current
     )
+
+    identity.sync_profile_image_from_auth(auth)
+    identity
   end
 
   # Find the configured provider for this identity
@@ -108,4 +118,51 @@ class OidcIdentity < ApplicationRecord
 
     issuer == config[:issuer]
   end
+
+  def sync_profile_image_from_auth(auth)
+    return if user.profile_image.attached?
+
+    image_url = auth.info&.image.presence || auth.extra&.raw_info&.picture.presence || auth.extra&.raw_info&.[]("picture")
+    return if image_url.blank?
+
+    uri = URI.parse(image_url)
+    return unless uri.is_a?(URI::HTTPS)
+    return unless google_avatar_host?(uri)
+
+    response = fetch_profile_image(uri)
+    return unless response.is_a?(Net::HTTPSuccess)
+
+    content_type = response["Content-Type"]&.split(";")&.first&.downcase
+    return unless content_type.in?(%w[image/jpeg image/png])
+    return if response.body.to_s.bytesize > 10.megabytes
+
+    user.profile_image.attach(
+      io: StringIO.new(response.body),
+      filename: "#{provider}-avatar-#{uid}.#{content_type == 'image/png' ? 'png' : 'jpg'}",
+      content_type: content_type
+    )
+  rescue StandardError => error
+    Rails.logger.warn("[SSO] Could not sync profile image for oidc_identity=#{id}: #{error.class} #{error.message}")
+  end
+
+  private
+
+    def google_avatar_host?(uri)
+      host = uri.host.to_s.downcase
+      host == GOOGLE_AVATAR_HOST_SUFFIX || host.end_with?(".#{GOOGLE_AVATAR_HOST_SUFFIX}")
+    end
+
+    def fetch_profile_image(uri)
+      Net::HTTP.start(
+        uri.host,
+        uri.port,
+        use_ssl: true,
+        open_timeout: 5,
+        read_timeout: 5,
+        write_timeout: 5
+      ) do |http|
+        request = Net::HTTP::Get.new(uri)
+        http.request(request)
+      end
+    end
 end

@@ -20,7 +20,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth[:openid_connect] = nil
   end
 
-  def setup_omniauth_mock(provider:, uid:, email:, name:, first_name: nil, last_name: nil)
+  def setup_omniauth_mock(provider:, uid:, email:, name:, first_name: nil, last_name: nil, image: nil)
     OmniAuth.config.mock_auth[:openid_connect] = OmniAuth::AuthHash.new({
       provider: provider,
       uid: uid,
@@ -28,7 +28,8 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
         email: email,
         name: name,
         first_name: first_name,
-        last_name: last_name
+        last_name: last_name,
+        image: image
       }.compact
     })
   end
@@ -204,7 +205,23 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Verify the session has the pending auth data by checking page content
-    assert_select "p", text: /To link your openid_connect account/
+    assert_equal "new-uid-99999", session[:pending_oidc_auth]["uid"]
+    assert_equal user_without_oidc.email, session[:pending_oidc_auth]["email"]
+  end
+
+  test "stores avatar url in pending auth for account linking" do
+    setup_omniauth_mock(
+      provider: "openid_connect",
+      uid: "new-uid-avatar",
+      email: "avatar-user@example.com",
+      name: "Avatar User",
+      image: "https://example.com/avatar.png"
+    )
+
+    get "/auth/openid_connect/callback"
+
+    assert_redirected_to link_oidc_account_path
+    assert_equal "https://example.com/avatar.png", session[:pending_oidc_auth]["image"]
   end
 
   test "handles missing auth data gracefully" do
