@@ -32,6 +32,10 @@
 #     - Set EXTERNAL_ASSISTANT_URL to http://openclaw:18789/v1/chat/completions
 #       for internal routing.
 #
+#   OpenClaw — external assistant gateway (optional, --profile external-assistant)
+#     - Starts an OpenClaw gateway locally for Sure's external assistant mode.
+#     - Set EXTERNAL_ASSISTANT_URL to http://openclaw-gateway:18789 for internal routing.
+#
 # Setup:
 # ------
 #
@@ -202,29 +206,33 @@ services:
     profiles:
       - external-assistant
     image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
-    hostname: openclaw
+    hostname: openclaw-gateway
     restart: unless-stopped
     init: true
+    user: "0:0"
     environment:
       HOME: /home/node
       TERM: xterm-256color
       TZ: ${OPENCLAW_TZ:-UTC}
       OPENCLAW_GATEWAY_TOKEN: ${EXTERNAL_ASSISTANT_TOKEN:-changeme}
       OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
+      # Keep permissive by default for local onboarding; tighten this in production.
+      OPENCLAW_CONTROL_UI_ALLOWED_ORIGINS: ${OPENCLAW_CONTROL_UI_ALLOWED_ORIGINS:-["*"]}
     command:
-      [
-        "node",
-        "dist/index.js",
-        "gateway",
-        # OpenClaw may exit with "Missing config" on first boot in example setups.
-        # `--allow-unconfigured` keeps the gateway running until you complete `openclaw setup`.
-        "pass",
-        "--allow-unconfigured",
-        "--bind",
-        "${OPENCLAW_GATEWAY_BIND:-lan}",
-        "--port",
-        "18789",
-      ]
+      - sh
+      - -c
+      - |
+        # Seed default OpenClaw config files once (BOOTSTRAP.md, SOUL.md, skills/*)
+        # from this repository into the writable OpenClaw home volume.
+        mkdir -p /home/node/.openclaw && \
+        chown -R node:node /home/node/.openclaw && \
+        su node -c '\
+          cp -rn /opt/openclaw-defaults/. /home/node/.openclaw/ 2>/dev/null || true; \
+          node dist/index.js config set gateway.controlUi.allowedOrigins '"'"'"$OPENCLAW_CONTROL_UI_ALLOWED_ORIGINS"'"'"' --strict-json && \
+          exec node dist/index.js gateway \
+            --allow-unconfigured \
+            --bind "'"${OPENCLAW_GATEWAY_BIND:-lan}"'" \
+            --port 18789'
     healthcheck:
       test:
         [
@@ -243,6 +251,7 @@ services:
     volumes:
       - openclaw-config:/home/node/.openclaw
       - openclaw-workspace:/home/node/.openclaw/workspace
+      - ./docs/hosting/openclaw:/opt/openclaw-defaults:ro
     networks:
       - sure_net
 
