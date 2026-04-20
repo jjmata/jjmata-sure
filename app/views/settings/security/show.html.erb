@@ -1,0 +1,89 @@
+<%= content_for :page_title, t(".page_title") %>
+
+<%= settings_section title: t(".mfa_title"), subtitle: t(".mfa_subtitle") do %>
+  <% if @mfa_enabled %>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <%= icon "check-circle", class: "text-green-600 w-5 h-5" %>
+        <p class="text-sm text-primary"><%= t(".mfa_enabled") %></p>
+      </div>
+      <%= link_to t(".disable_mfa"), disable_mfa_path, data: { turbo_method: :delete, turbo_confirm: t(".disable_mfa_confirm") }, class: "text-sm text-red-600 hover:underline" %>
+    </div>
+  <% else %>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <%= icon "x-circle", class: "text-gray-400 w-5 h-5" %>
+        <p class="text-sm text-secondary"><%= t(".mfa_disabled") %></p>
+      </div>
+      <%= link_to t(".enable_mfa"), new_mfa_path, class: "text-sm text-blue-600 hover:underline" %>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @sso_identities.any? %>
+  <%= settings_section title: t(".sso_title"), subtitle: t(".sso_subtitle") do %>
+    <div class="space-y-2">
+      <% @sso_identities.each do |identity| %>
+        <div class="flex items-center justify-between p-4 bg-container-inset rounded-lg">
+          <div>
+            <p class="text-sm font-medium text-primary"><%= identity.provider.titleize %></p>
+            <p class="text-xs text-secondary"><%= identity.info["email"] %></p>
+          </div>
+          <%= link_to t(".unlink"), settings_sso_identity_path(identity), data: { turbo_method: :delete, turbo_confirm: t(".unlink_confirm") }, class: "text-sm text-red-600 hover:underline" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<%= settings_section title: t(".recent_logins_title"), subtitle: t(".recent_logins_subtitle") do %>
+  <% if @recent_login_activities.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+              <%= t(".login_time") %>
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+              <%= t(".location") %>
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+              <%= t(".ip_address") %>
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+              <%= t(".device") %>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% @recent_login_activities.each do |activity| %>
+            <tr class="<%= 'bg-yellow-50' if activity.unusual? %>">
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-primary">
+                <%= l activity.created_at, format: :long %>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-primary">
+                <% if activity.unusual? %>
+                  <span class="inline-flex items-center gap-1">
+                    <%= icon "alert-triangle", class: "text-yellow-600 w-4 h-4" %>
+                    <%= activity.city.present? ? "#{activity.city}, #{activity.country}" : activity.country || t(".unknown") %>
+                  </span>
+                <% else %>
+                  <%= activity.city.present? ? "#{activity.city}, #{activity.country}" : activity.country || t(".unknown") %>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-secondary font-mono">
+                <%= activity.ip_address %>
+              </td>
+              <td class="px-4 py-3 text-sm text-secondary max-w-xs truncate" title="<%= activity.user_agent %>">
+                <%= activity.user_agent %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-secondary"><%= t(".no_recent_logins") %></p>
+  <% end %>
+<% end %>

@@ -113,26 +113,29 @@ en:
         remove_invitation: Remove Invitation
         remove_member: Remove Member
         save: Save
-    securities:
+    security:
       show:
         page_title: Security
+        title: Security
         mfa_title: Two-Factor Authentication
-        mfa_description: Add an extra layer of security to your account by requiring a code from your authenticator app when signing in
+        mfa_subtitle: Add an extra layer of security to your account by requiring a code from your authenticator app when signing in
+        mfa_enabled: Two-factor authentication is enabled
+        mfa_disabled: Two-factor authentication is disabled
         enable_mfa: Enable 2FA
         disable_mfa: Disable 2FA
         disable_mfa_confirm: Are you sure you want to disable two-factor authentication?
         sso_title: Connected Accounts
         sso_subtitle: Manage your single sign-on account connections
-        sso_disconnect: Disconnect
-        sso_last_used: Last used
-        sso_never: Never
-        sso_no_email: No email
-        sso_no_identities: No SSO accounts connected
-        sso_connect_hint: Log out and sign in with an SSO provider to connect an account.
-        sso_confirm_title: Disconnect Account?
-        sso_confirm_body: Are you sure you want to disconnect your %{provider} account? You can reconnect it later by signing in with that provider again.
-        sso_confirm_button: Disconnect
-        sso_warning_message: This is your only login method. You should set a password in your security settings before disconnecting, otherwise you may be locked out of your account.
+        unlink: Disconnect
+        unlink_confirm: Are you sure you want to disconnect this account?
+        recent_logins_title: Recent Login Activity
+        recent_logins_subtitle: Your last 5 login locations and IP addresses. Unusual logins (from different countries) are highlighted.
+        login_time: Login Time
+        location: Location
+        ip_address: IP Address
+        device: Device / Browser
+        unknown: Unknown
+        no_recent_logins: No recent login activity to display
     settings_nav:
       accounts_label: Accounts
       advanced_section_title: Advanced
