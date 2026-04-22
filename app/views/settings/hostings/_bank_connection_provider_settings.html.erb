@@ -1,0 +1,16 @@
+<% if @instance_provider_configurations.any? %>
+  <div class="space-y-4 border-t border-primary pt-6">
+    <div>
+      <h2 class="font-medium mb-1">Bank connection provider credentials</h2>
+      <p class="text-secondary text-sm">
+        Instance-level credentials for bank aggregation providers. Family admins manage live connections in Settings &gt; Connections.
+      </p>
+    </div>
+
+    <% @instance_provider_configurations.each do |config| %>
+      <%= settings_section title: config.provider_key.titleize, collapsible: true, open: false do %>
+        <%= render "settings/providers/provider_form", configuration: config, submit_url: settings_hosting_path %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

@@ -56,7 +56,7 @@
               text: t(".update_credentials"),
               icon: "refresh-cw",
               variant: "secondary",
-              href: settings_providers_path,
+              href: settings_providers_path(provider: "indexa_capital"),
               frame: "_top"
             ) %>
           <% else %>
@@ -82,7 +82,7 @@
               variant: "link",
               text: t(".update_credentials"),
               icon: "cable",
-              href: settings_providers_path(manage: "1")
+              href: settings_providers_path(provider: "indexa_capital")
             ) %>
             <% menu.with_item(
               variant: "button",

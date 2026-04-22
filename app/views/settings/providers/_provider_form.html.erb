@@ -1,6 +1,7 @@
 <%
   # Parameters:
   # - configuration: Provider::Configurable::Configuration object
+  # - submit_url: path to submit updates to
 %>
 
 <div class="space-y-4">
@@ -31,7 +32,7 @@
   </div>
 
   <%= styled_form_with model: Setting.new,
-                       url: settings_providers_path,
+                       url: local_assigns.fetch(:submit_url, settings_hosting_path),
                        method: :patch do |form| %>
     <div class="space-y-4">
       <% configuration.fields.each do |field| %>

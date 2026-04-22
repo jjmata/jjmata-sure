@@ -11,27 +11,7 @@ class Settings::HostingsController < ApplicationController
       [ "Home", root_path ],
       [ "Self-Hosting", nil ]
     ]
-
-    # Determine which providers are currently selected
-    exchange_rate_provider = ENV["EXCHANGE_RATE_PROVIDER"].presence || Setting.exchange_rate_provider
-    securities_provider = ENV["SECURITIES_PROVIDER"].presence || Setting.securities_provider
-
-    # Show Twelve Data settings if either provider is set to twelve_data
-    @show_twelve_data_settings = exchange_rate_provider == "twelve_data" || securities_provider == "twelve_data"
-
-    # Show Yahoo Finance settings if either provider is set to yahoo_finance
-    @show_yahoo_finance_settings = exchange_rate_provider == "yahoo_finance" || securities_provider == "yahoo_finance"
-
-    # Only fetch provider data if we're showing the section
-    if @show_twelve_data_settings
-      twelve_data_provider = Provider::Registry.get_provider(:twelve_data)
-      @twelve_data_usage = twelve_data_provider&.usage
-      @plan_restricted_securities = Current.family.securities_with_plan_restrictions(provider: "TwelveData")
-    end
-
-    if @show_yahoo_finance_settings
-      @yahoo_finance_provider = Provider::Registry.get_provider(:yahoo_finance)
-    end
+    prepare_show_context
   end
 
   def update
@@ -139,11 +119,16 @@ class Settings::HostingsController < ApplicationController
       Setting.external_assistant_agent_id = hosting_params[:external_assistant_agent_id]
     end
 
+    if params.key?(:setting)
+      ProviderSettingsUpdater.call(params.require(:setting))
+    end
+
     update_assistant_type
 
     redirect_to settings_hosting_path, notice: t(".success")
   rescue Setting::ValidationError => error
     flash.now[:alert] = error.message
+    prepare_show_context
     render :show, status: :unprocessable_entity
   end
 
@@ -197,5 +182,22 @@ class Settings::HostingsController < ApplicationController
 
     def current_user_timezone
       Current.family&.timezone.presence || "UTC"
+    end
+
+    def prepare_show_context
+      exchange_rate_provider = ENV["EXCHANGE_RATE_PROVIDER"].presence || Setting.exchange_rate_provider
+      securities_provider = ENV["SECURITIES_PROVIDER"].presence || Setting.securities_provider
+
+      @show_twelve_data_settings = exchange_rate_provider == "twelve_data" || securities_provider == "twelve_data"
+      @show_yahoo_finance_settings = exchange_rate_provider == "yahoo_finance" || securities_provider == "yahoo_finance"
+      @instance_provider_configurations = Provider::Catalog.instance_configurations
+
+      if @show_twelve_data_settings
+        twelve_data_provider = Provider::Registry.get_provider(:twelve_data)
+        @twelve_data_usage = twelve_data_provider&.usage
+        @plan_restricted_securities = Current.family.securities_with_plan_restrictions(provider: "TwelveData")
+      end
+
+      @yahoo_finance_provider = Provider::Registry.get_provider(:yahoo_finance) if @show_yahoo_finance_settings
     end
 end

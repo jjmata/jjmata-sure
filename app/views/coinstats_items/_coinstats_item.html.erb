@@ -53,7 +53,7 @@
               text: t(".update_api_key"),
               icon: "refresh-cw",
               variant: "secondary",
-              href: settings_providers_path,
+              href: settings_providers_path(provider: "coinstats"),
               frame: "_top"
             ) %>
           <% elsif Rails.env.development? %>

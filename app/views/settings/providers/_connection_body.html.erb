@@ -1,0 +1,46 @@
+<% if card[:key] == "plaid" %>
+  <% if card[:items].any? %>
+    <div class="space-y-3">
+      <%= render partial: card[:item_partial], collection: card[:items], locals: { origin: "connections" } %>
+    </div>
+  <% end %>
+
+  <% if card[:plaid_us_available] || card[:plaid_eu_available] %>
+    <div class="flex flex-wrap gap-2">
+      <% if card[:plaid_us_available] %>
+        <%= link_to "Connect bank",
+                    new_plaid_item_path(origin: "connections"),
+                    class: "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors",
+                    data: { turbo_frame: "modal" } %>
+      <% end %>
+
+      <% if card[:plaid_eu_available] %>
+        <%= link_to "Connect EU bank",
+                    new_plaid_item_path(origin: "connections", region: "eu"),
+                    class: "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-primary border border-primary hover:bg-container-inset transition-colors",
+                    data: { turbo_frame: "modal" } %>
+      <% end %>
+    </div>
+  <% elsif card[:items].empty? %>
+    <div class="rounded-lg border border-warning/20 bg-warning/10 p-4 text-sm text-warning">
+      Plaid isn’t configured for this instance. Ask your self-hosting admin to add Plaid credentials in Self-Hosting before connecting a bank.
+    </div>
+  <% end %>
+<% else %>
+  <% if card[:show_item_collection] && card[:items].any? %>
+    <div class="space-y-3">
+      <%= render partial: card[:item_partial], collection: card[:items] %>
+    </div>
+  <% end %>
+
+  <% if card[:items].empty? || card[:show_panel_when_connected] %>
+    <% panel_locals = card[:panel_locals] || {} %>
+    <% if card[:turbo_frame_id].present? %>
+      <turbo-frame id="<%= card[:turbo_frame_id] %>">
+        <%= render card[:panel_partial], **panel_locals %>
+      </turbo-frame>
+    <% else %>
+      <%= render card[:panel_partial], **panel_locals %>
+    <% end %>
+  <% end %>
+<% end %>

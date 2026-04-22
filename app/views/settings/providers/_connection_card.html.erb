@@ -1,0 +1,43 @@
+<% tone_classes = case card[:status_tone] %>
+<% when "success" then "bg-success/10 text-success" %>
+<% when "warning" then "bg-warning/10 text-warning" %>
+<% when "destructive" then "bg-destructive/10 text-destructive" %>
+<% when "primary" then "bg-primary/10 text-primary" %>
+<% else "bg-container-inset text-secondary" %>
+<% end %>
+
+<details id="provider-<%= card[:key] %>" <%= "open" if card[:open] %> class="group bg-container shadow-border-xs rounded-xl p-4">
+  <summary class="flex items-start justify-between gap-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+    <div class="min-w-0 space-y-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <%= icon "chevron-right", class: "text-secondary group-open:transform group-open:rotate-90 transition-transform" %>
+        <h3 class="text-lg font-medium text-primary"><%= card[:title] %></h3>
+        <span class="inline-flex items-center rounded-full bg-container-inset px-2.5 py-1 text-xs font-medium text-secondary"><%= card[:category] %></span>
+        <% if card[:maturity].present? %>
+          <span class="inline-flex items-center rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning"><%= card[:maturity] %></span>
+        <% end %>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <span class="inline-flex items-center rounded-full px-2.5 py-1 font-medium <%= tone_classes %>"><%= card[:status_label] %></span>
+        <% if card[:meta_text].present? %>
+          <p class="text-secondary"><%= card[:meta_text] %></p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-2">
+      <% if card[:primary_action_path].present? %>
+        <%= link_to card[:primary_action_path],
+                    class: "inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-primary border border-primary hover:bg-container-inset transition-colors",
+                    data: card[:primary_action_frame].present? ? { turbo_frame: card[:primary_action_frame] } : {} do %>
+          <%= card[:primary_action_label] %>
+        <% end %>
+      <% end %>
+    </div>
+  </summary>
+
+  <div class="mt-4 space-y-4">
+    <%= render "settings/providers/connection_body", card: card %>
+  </div>
+</details>

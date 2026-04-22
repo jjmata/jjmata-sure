@@ -1,6 +1,6 @@
-<%= content_for :page_title, "Sync Providers" %>
+<%= content_for :page_title, "Connections" %>
 
-<div class="space-y-4">
+<div class="space-y-6">
   <% if @encryption_error %>
     <div class="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
       <div class="flex items-start gap-3">
@@ -12,71 +12,50 @@
       </div>
     </div>
   <% else %>
-    <div>
-      <p class="text-secondary mb-4">
-        Configure credentials for third-party sync providers. Settings configured here will override environment variables.
+    <div class="space-y-2">
+      <p class="text-secondary">
+        Manage your family's live financial connections here. Instance-level provider credentials now live in Self-Hosting.
       </p>
     </div>
-  <% end %>
 
-  <% unless @encryption_error %>
-    <% @provider_configurations.each do |config| %>
-      <%= settings_section title: config.provider_key.titleize, collapsible: true, open: false do %>
-        <%= render "settings/providers/provider_form", configuration: config %>
-      <% end %>
-    <% end %>
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="bg-container rounded-xl p-4 shadow-border-xs">
+        <p class="text-xs uppercase tracking-wide text-secondary">Needs attention</p>
+        <p class="mt-2 text-2xl font-medium text-primary"><%= @summary_counts[:needs_attention] %></p>
+      </div>
+      <div class="bg-container rounded-xl p-4 shadow-border-xs">
+        <p class="text-xs uppercase tracking-wide text-secondary">Connected</p>
+        <p class="mt-2 text-2xl font-medium text-primary"><%= @summary_counts[:connected] %></p>
+      </div>
+      <div class="bg-container rounded-xl p-4 shadow-border-xs">
+        <p class="text-xs uppercase tracking-wide text-secondary">Available</p>
+        <p class="mt-2 text-2xl font-medium text-primary"><%= @summary_counts[:available] %></p>
+      </div>
+      <div class="bg-container rounded-xl p-4 shadow-border-xs">
+        <p class="text-xs uppercase tracking-wide text-secondary">Syncing</p>
+        <p class="mt-2 text-2xl font-medium text-primary"><%= @summary_counts[:syncing] %></p>
+      </div>
+    </div>
 
-    <%# Providers below are hardcoded because they manage Family-scoped connections                 %>
-    <%# (via their own models like SimplefinItem, LunchflowItem, etc.) rather than global settings. %>
-    <%# They require custom UI for connection management, status display, and sync actions.         %>
-    <%# The controller excludes them from @provider_configurations (see prepare_show_context).      %>
+    <% [
+      [ "Needs attention", @needs_attention_cards ],
+      [ "Connected", @connected_cards ],
+      [ "Available to connect", @available_cards ]
+    ].each do |section_title, cards| %>
+      <% next if cards.empty? %>
 
-    <%= settings_section title: "Lunch Flow", collapsible: true, open: false do %>
-      <turbo-frame id="lunchflow-providers-panel">
-        <%= render "settings/providers/lunchflow_panel" %>
-      </turbo-frame>
-    <% end %>
+      <section class="space-y-3">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-medium text-primary"><%= section_title %></h2>
+          <%= render "shared/ruler", classes: "w-full" %>
+        </div>
 
-    <%= settings_section title: "SimpleFIN", collapsible: true, open: false do %>
-      <turbo-frame id="simplefin-providers-panel">
-        <%= render "settings/providers/simplefin_panel" %>
-      </turbo-frame>
-    <% end %>
-
-    <%= settings_section title: "Enable Banking (beta)", collapsible: true, open: false do %>
-      <turbo-frame id="enable_banking-providers-panel">
-        <%= render "settings/providers/enable_banking_panel" %>
-      </turbo-frame>
-    <% end %>
-
-    <%= settings_section title: "CoinStats (beta)", collapsible: true, open: false do %>
-      <turbo-frame id="coinstats-providers-panel">
-        <%= render "settings/providers/coinstats_panel" %>
-      </turbo-frame>
-    <% end %>
-
-    <%= settings_section title: "Mercury (beta)", collapsible: true, open: false do %>
-      <turbo-frame id="mercury-providers-panel">
-        <%= render "settings/providers/mercury_panel" %>
-      </turbo-frame>
-    <% end %>
-
-    <%= settings_section title: "Coinbase (beta)", collapsible: true, open: false do %>
-      <turbo-frame id="coinbase-providers-panel">
-        <%= render "settings/providers/coinbase_panel" %>
-      </turbo-frame>
-    <% end %>
-
-    <%= settings_section title: "SnapTrade (beta)", collapsible: true, open: false, auto_open_param: "manage" do %>
-      <turbo-frame id="snaptrade-providers-panel">
-        <%= render "settings/providers/snaptrade_panel" %>
-      </turbo-frame>
-    <% end %>
-
-    <%= settings_section title: "Indexa Capital (alpha)", collapsible: true, open: false do %>
-      <turbo-frame id="indexa_capital-providers-panel">
-        <%= render "settings/providers/indexa_capital_panel" %>
-      </turbo-frame>
+        <div class="space-y-4">
+          <% cards.each do |card| %>
+            <%= render "settings/providers/connection_card", card: card %>
+          <% end %>
+        </div>
+      </section>
     <% end %>
   <% end %>
 </div>

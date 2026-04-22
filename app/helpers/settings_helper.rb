@@ -19,7 +19,7 @@ module SettingsHelper
     { name: "LLM Usage", path: :settings_llm_usage_path, condition: :admin_user? },
     { name: "API Key", path: :settings_api_key_path, condition: :admin_user? },
     { name: "Self-Hosting", path: :settings_hosting_path, condition: :self_hosted_and_admin? },
-    { name: "Providers", path: :settings_providers_path, condition: :admin_user? },
+    { name: "Connections", path: :settings_providers_path, condition: :admin_user? },
     { name: "Imports", path: :imports_path, condition: :admin_user? },
     { name: "Exports", path: :family_exports_path, condition: :admin_user? },
     # More section

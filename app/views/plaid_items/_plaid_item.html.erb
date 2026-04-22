@@ -1,6 +1,7 @@
 <%# locals: (plaid_item:) %>
 
 <%= tag.div id: dom_id(plaid_item) do %>
+  <% origin = local_assigns[:origin] || "accounts" %>
   <details open class="group bg-container p-4 shadow-border-xs rounded-xl">
     <summary class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
@@ -53,7 +54,7 @@
               text: t(".update"),
               icon: "refresh-cw",
               variant: "secondary",
-              href: edit_plaid_item_path(plaid_item),
+              href: edit_plaid_item_path(plaid_item, origin: origin),
               frame: "modal"
             ) %>
           <% elsif Rails.env.development? %>
@@ -69,7 +70,7 @@
               variant: "button",
               text: t(".delete"),
               icon: "trash-2",
-              href: plaid_item_path(plaid_item),
+              href: plaid_item_path(plaid_item, origin: origin),
               method: :delete,
               confirm: CustomConfirm.for_resource_deletion(plaid_item.name, high_severity: true)
             ) %>

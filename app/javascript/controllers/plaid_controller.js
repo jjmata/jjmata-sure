@@ -7,6 +7,8 @@ export default class extends Controller {
     region: { type: String, default: "us" },
     isUpdate: { type: Boolean, default: false },
     itemId: String,
+    origin: { type: String, default: "accounts" },
+    returnUrl: { type: String, default: "/accounts" },
   };
 
   connect() {
@@ -100,8 +102,7 @@ export default class extends Controller {
           "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content,
         },
       }).then(() => {
-        // Refresh the page to show the updated status
-        window.location.href = "/accounts";
+        window.location.href = this.returnUrlValue;
       });
       return;
     }
@@ -118,6 +119,7 @@ export default class extends Controller {
           public_token: public_token,
           metadata: metadata,
           region: this.regionValue,
+          origin: this.originValue,
         },
       }),
     }).then((response) => {
@@ -130,7 +132,7 @@ export default class extends Controller {
   handleExit = (err, metadata) => {
     // If there was an error during update mode, refresh the page to show latest status
     if (err && metadata.status === "requires_credentials") {
-      window.location.href = "/accounts";
+      window.location.href = this.returnUrlValue;
     }
   };
 

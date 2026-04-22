@@ -8,10 +8,11 @@ class PlaidItemsController < ApplicationController
 
     @link_token = Current.family.get_link_token(
       webhooks_url: webhooks_url,
-      redirect_url: accounts_url,
+      redirect_url: plaid_return_url,
       accountable_type: params[:accountable_type] || "Depository",
       region: region
     )
+    @return_url = plaid_return_path
   end
 
   def edit
@@ -19,8 +20,9 @@ class PlaidItemsController < ApplicationController
 
     @link_token = @plaid_item.get_update_link_token(
       webhooks_url: webhooks_url,
-      redirect_url: accounts_url,
+      redirect_url: plaid_return_url,
     )
+    @return_url = plaid_return_path
   end
 
   def create
@@ -30,12 +32,12 @@ class PlaidItemsController < ApplicationController
       region: plaid_item_params[:region]
     )
 
-    redirect_to accounts_path, notice: t(".success")
+    redirect_to plaid_return_path, notice: t(".success")
   end
 
   def destroy
     @plaid_item.destroy_later
-    redirect_to accounts_path, notice: t(".success")
+    redirect_to plaid_return_path, notice: t(".success")
   end
 
   def sync
@@ -44,7 +46,7 @@ class PlaidItemsController < ApplicationController
     end
 
     respond_to do |format|
-      format.html { redirect_back_or_to accounts_path }
+      format.html { redirect_back_or_to plaid_return_path }
       format.json { head :ok }
     end
   end
@@ -97,7 +99,7 @@ class PlaidItemsController < ApplicationController
     end
 
     def plaid_item_params
-      params.require(:plaid_item).permit(:public_token, :region, metadata: {})
+      params.require(:plaid_item).permit(:public_token, :region, :origin, metadata: {})
     end
 
     def item_name
@@ -114,5 +116,17 @@ class PlaidItemsController < ApplicationController
       return webhooks_plaid_eu_url if Rails.env.production?
 
       ENV.fetch("DEV_WEBHOOKS_URL", root_url.chomp("/")) + "/webhooks/plaid_eu"
+    end
+
+    def plaid_origin
+      params[:origin].to_s == "connections" ? "connections" : "accounts"
+    end
+
+    def plaid_return_path
+      plaid_origin == "connections" ? settings_providers_path(provider: "plaid") : accounts_path
+    end
+
+    def plaid_return_url
+      plaid_origin == "connections" ? settings_providers_url(provider: "plaid") : accounts_url
     end
 end
