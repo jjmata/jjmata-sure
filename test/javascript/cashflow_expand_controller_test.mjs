@@ -54,9 +54,9 @@ class FakeDialog {
 }
 
 class FakeSection {
-  constructor(dialog, draggable = "true") {
+  constructor(dialog) {
     this.dialog = dialog
-    this.attributes = new Map([["draggable", draggable]])
+    this.attributes = new Map([["draggable", "true"]])
   }
 
   querySelector(selector) {

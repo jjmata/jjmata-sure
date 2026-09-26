@@ -1,25 +1,14 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  connect() {
-    this.closeBeforeCache = this.closeBeforeCache.bind(this);
-    document.addEventListener("turbo:before-cache", this.closeBeforeCache);
-  }
-
-  disconnect() {
-    document.removeEventListener("turbo:before-cache", this.closeBeforeCache);
-  }
-
   open() {
     const dialog = this.element.querySelector("dialog");
     if (!dialog) return;
 
     // A dialog restored from a Turbo snapshot keeps its `open` attribute but
     // is no longer modal, and showModal() throws InvalidStateError on it.
-    if (dialog.open) {
-      if (dialog.matches(":modal")) return;
-      dialog.close();
-    }
+    if (dialog.matches(":modal")) return;
+    if (dialog.open) dialog.close();
 
     if (typeof this.originalDraggable === "undefined") {
       this.originalDraggable = this.element.getAttribute("draggable");
