@@ -10,6 +10,7 @@ pin_all_from "app/javascript/services", under: "services", to: "services"
 pin_all_from "app/javascript/utils", under: "utils", to: "utils"
 pin "utils/sankey_zoom", to: "utils/sankey_zoom.mjs"
 pin "utils/transactions_filter_url", to: "utils/transactions_filter_url.mjs"
+pin "utils/turbo_frame_missing", to: "utils/turbo_frame_missing.mjs"
 pin "@github/hotkey", to: "@github--hotkey.js" # @3.1.1
 pin "@simonwep/pickr", to: "@simonwep--pickr.js" # @1.9.1
 

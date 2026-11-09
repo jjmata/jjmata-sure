@@ -7,6 +7,13 @@
   <div id="sync-toast"></div>
   <div id="cta"></div>
 
+  <%# Cloned into the tray by application.js when a frame request fails. %>
+  <template id="frame-load-error-template">
+    <div id="frame-load-error" role="alert">
+      <%= render "shared/notifications/alert", message: t("shared.frame_load_error.message") %>
+    </div>
+  </template>
+
   <%# Announces an action that changed the page without leaving anything on
       screen to read — a turbo_stream can update this instead of rendering a
       toast. It has to live here, outside every stream target, and be present

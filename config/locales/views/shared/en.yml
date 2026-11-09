@@ -9,6 +9,8 @@ en:
     sync_toast:
       message: "New data available"
       refresh: "Refresh"
+    frame_load_error:
+      message: "Something went wrong. Try again."
     confirm_modal:
       accept: Confirm
       body_html: "<p>You will not be able to undo this decision</p>"
