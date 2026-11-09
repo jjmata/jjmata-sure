@@ -2,6 +2,7 @@
 import "@hotwired/turbo-rails";
 import "controllers";
 import HwComboboxController from "controllers/hw_combobox_controller";
+import { handleTurboFrameMissing } from "utils/turbo_frame_missing";
 
 // Fix hotwire_combobox race condition: when typing quickly, a slow response for
 // an early query (e.g. "A") can overwrite the correct results for the final query
@@ -49,6 +50,20 @@ Turbo.StreamActions.redirect = function () {
   // Use "replace" to avoid adding form submission to browser history
   Turbo.visit(this.target, { action: "replace" });
 };
+
+document.addEventListener("turbo:frame-missing", (event) => {
+  handleTurboFrameMissing(event, { notifyError: showFrameLoadError });
+});
+
+function showFrameLoadError(details) {
+  window.posthog?.capture("turbo_frame_load_failed", details);
+
+  if (document.getElementById("frame-load-error")) return;
+
+  const template = document.getElementById("frame-load-error-template");
+  const tray = document.getElementById("notification-tray");
+  if (template && tray) tray.prepend(template.content.cloneNode(true));
+}
 
 // Register service worker for PWA offline support
 if ('serviceWorker' in navigator) {
