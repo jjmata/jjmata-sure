@@ -1,5 +1,6 @@
 import { install, uninstall } from "@github/hotkey";
 import { Controller } from "@hotwired/stimulus";
+import { MODAL_DIALOG } from "utils/modal_dialog";
 
 // Connects to data-controller="hotkey"
 export default class extends Controller {
@@ -30,8 +31,8 @@ export default class extends Controller {
   // the capture phase so it runs before the library's own keydown listener.
   syncInstall = (event) => {
     const modal =
-      event?.target.closest?.("dialog:modal") ??
-      document.querySelector("dialog:modal");
+      event?.target.closest?.(MODAL_DIALOG) ??
+      document.querySelector(MODAL_DIALOG);
     const heldLink = event?.repeat && this.element.matches("a[href]");
     const scrolling =
       event?.key?.startsWith("Arrow") &&

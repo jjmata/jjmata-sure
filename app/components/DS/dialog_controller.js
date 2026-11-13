@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
+import { MODAL_DIALOG } from "utils/modal_dialog";
 
 const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -32,7 +33,7 @@ export default class extends Controller {
     this.element.addEventListener("keydown", this._onKeydown);
     this.element.addEventListener("close", this._onClose);
 
-    if (this.element.matches(":modal")) return;
+    if (this.element.matches(MODAL_DIALOG)) return;
     // Back restores a dialog cached open as a plain open one: no backdrop, no
     // focus trap. Put it back as it was rendered, closed and with no close
     // event for listeners to act on, and let auto-open show it as a modal.
